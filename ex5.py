@@ -6,18 +6,26 @@ import scipy.io as sio
 image = cv2.imread("./hw2_data/ascent.jpg", 0)
 cv2.imshow("Original", image)
 
+hx1, hy0 = cv2.getDerivKernels(1,0,5)
+hx0, hy1 = cv2.getDerivKernels(0,1,5)
+x_filter = np.ones(shape=(5,5))
+x_filter = x_filter*hx1
+y_filter = np.ones(shape=(5,5))
+hy1 = hy1.transpose()
+y_filter = hy1*y_filter
+
 def getDirectionalFilteredImage(image, theta):
-    sobel_x = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=5)
-    sobel_y = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=5)
     u = np.sin(theta)
     v = np.cos(theta)
-    return u*sobel_x + v*sobel_y
+    filter = u*x_filter + v*y_filter
+    filteredImage = cv2.filter2D(image, -1, filter)
+    return filteredImage, filter
 
-cv2.imshow("sobel_0", getDirectionalFilteredImage(image, 0))
-cv2.imshow("sobel_45", getDirectionalFilteredImage(image, 45))
-cv2.imshow("sobel_60", getDirectionalFilteredImage(image, 60))
-cv2.imshow("sobel_75", getDirectionalFilteredImage(image, 75))
-cv2.imshow("sobel_90", getDirectionalFilteredImage(image, 90))
+angles = [0, 45, 60, 75, 90]
+for angle in angles:
+    filteredImage, filter = getDirectionalFilteredImage(image, angle)
+    print("the " + str(angle) + " angle filter is: \n" + str(filter))
+    cv2.imshow("angle " + str(angle) + "", filteredImage)
 
 cv2.waitKey()
 cv2.destroyAllWindows()
